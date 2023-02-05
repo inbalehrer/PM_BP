@@ -1,6 +1,7 @@
 import pm4py
 
-def footprint(el):
+
+def footprint(el, path):
     from pm4py.algo.discovery.footprints import algorithm as footprints
     from pm4py.visualization.footprints import visualizer as fp_visualizer
     fp_log = footprints.apply(el, variant=footprints.Variants.ENTIRE_EVENT_LOG)
@@ -9,8 +10,16 @@ def footprint(el):
     # visualize single footprint table - model
     f, im, fm = pm4py.discover_petri_net_inductive(el)
     fp_net = footprints.apply(f, im, fm)
-    gviz = fp_visualizer.apply(fp_net, parameters={fp_visualizer.Variants.SINGLE.value.Parameters.FORMAT: "svg"})
+    gviz = fp_visualizer.apply(fp_log, parameters={fp_visualizer.Variants.SINGLE.value.Parameters.FORMAT: "png"})
+    fp_visualizer.save(gviz, f"{path}_footprint.png")
     fp_visualizer.view(gviz)
+
+
+
+def token_based(el, n, im, fm):
+    replayed_traces = pm4py.conformance_diagnostics_token_based_replay(el, n, im, fm)
+    print(f"Token based CC: \n {replayed_traces}")
+    return replayed_traces
 
 
 def alignment(el, net, initial_marking, final_marking):

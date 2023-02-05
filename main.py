@@ -1,6 +1,7 @@
 import pandas as pd
 import pm4py
 
+import Conformance
 import Discovery
 import Enhancment
 
@@ -21,46 +22,51 @@ def csv_to_el(path, x):
     return el
 
 
-def analysis(el, title):
-    print(f"--------------------{title}--------------------")
-    start_events = pm4py.get_start_activities(el)
-    end_events = pm4py.get_end_activities(el)
-    print(f"Start events:\n {start_events} \n End events:\n {end_events}")
-    # Filters
-    # filtered_start = pm4py.filter_start_activities(el, start_acc)
-    # filtered_log = pm4py.filter_end_activities(filtered_start, end_acc)
-    # filtered = pm4py.filter_event_attribute_values(el, str(attribute), value, retain=retainit)
-
-    Enhancment.modal(el)
-    Enhancment.ages(el)
-    Enhancment.rework(el)
-    Enhancment.sub_had(el)
-
-    Discovery.dist_event(el, f"Results/{title}")
-    Discovery.discovery_inductive(el, f"Results/{title}")
-    Discovery.discovery_alpha(el, f"Results/{title}")
-    # Enhancment.batch(el_adm)
-    # Discovery.social_net(el_trans, "Results/adm")
-
-
 if __name__ == '__main__':
     el_adm = csv_to_el("Data/lbp_admission.csv", False)
-    el_trans = csv_to_el("Data/lbp_transfer.csv", False)
+    el_trans = csv_to_el("Data/el_t_2.csv", False)
 
-    analysis(el_adm, "admission")
     # Filters adm
-    # Variants
+    # Top 3 Variants, edout start event, shorter than 10 days
     el_adm = pm4py.filter_variants_top_k(el_adm, 3)
-    el_adm = pm4py.filter_trace_attribute_values(el_adm, attribute_key="concept:name",  values="edout", retain= False)
+    el_adm = pm4py.filter_start_activities(el_adm, ["edout"], retain=False)
+    # el_adm = pm4py.filter_trace_attribute_values(el_adm, attribute_key="concept:name", values="edout", retain=False)
     el_adm = pm4py.filter_case_performance(el_adm, 0, 864000)
 
-    Enhancment.modal(el_adm)
-    Enhancment.ages(el_adm)
-    Enhancment.rework(el_adm)
-    Enhancment.sub_had(el_adm)
+    el_reg = pm4py.filter_event_attribute_values(el_adm, "concept:name", "edreg", retain=True)
+    Discovery.dist_event(el_reg, f"Results/admin_edreg")
 
-    Discovery.dist_event(el_adm, f"Results/adm_f_")
-    Discovery.discovery_inductive(el_adm, f"Results/adm_f_")
-    Discovery.discovery_alpha(el_adm, f"Results/adm_f_")
+    #Filters transfer
+    el_trans = pm4py.filter_start_activities(el_trans, ["ED Emergency Department"], retain=True)
 
-    #Conformance checking
+    event_logs = {"Admission": el_adm, "Transfer": el_trans}
+
+
+    for k in event_logs:
+        print(f"----------- {k} ----------")
+        start_events = pm4py.get_start_activities(event_logs[k])
+        end_events = pm4py.get_end_activities(event_logs[k])
+        print(f"{k}: Start events:\n {start_events} \n End events:\n {end_events}")
+        el_complex, id_complex = Enhancment.sub_had(event_logs[k])
+
+        Enhancment.modal(event_logs[k], k)
+        Enhancment.ages(event_logs[k])
+        #Enhancment.rework(event_logs[k])
+        Enhancment.avg_hospital_time(event_logs[k], f"Results/{k}")
+
+        Discovery.dist_event(event_logs[k], f"Results/{k}")
+        n, im, fm = Discovery.discovery_inductive(event_logs[k], f"Results/{k}")
+
+        #Conformance checking
+        print(f"--------- CC {k} --------- CC  ")
+        if k == "Admission":
+            Conformance.footprint(event_logs[k], f"Results/{k}")
+        Conformance.token_based(event_logs[k], n, im, fm)
+        Conformance.alignment(event_logs[k], n, im, fm)
+
+    # Conformance checking admission
+    # Conformance checking Transfer
+
+    # Conformance checking
+    el_adm_m = pm4py.filter_event_attribute_values(el_adm, "case:gender", ["M"], retain=True)
+    el_adm_f = pm4py.filter_event_attribute_values(el_adm, "case:gender", ["F"], retain=True)

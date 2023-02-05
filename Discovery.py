@@ -56,14 +56,11 @@ def social_net(el, path):
     :param path: location to save social net
     :return: - Saves graph in a corresponding path
     '''
+
     hw_values = pm4py.discover_handover_of_work_network(el)
     pm4py.save_vis_sna(hw_values, f"{path}_ho.html")
 
     wt_values = pm4py.discover_working_together_network(el)
     pm4py.save_vis_sna(wt_values, f"{path}_wt.html")
 
-def activity_time(el):
-    # amount of activity y
-    # time (months)
-    # color - acitivites
-    print("x")
+
