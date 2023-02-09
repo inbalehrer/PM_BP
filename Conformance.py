@@ -18,13 +18,18 @@ def footprint(el, path):
 
 def token_based(el, n, im, fm):
     replayed_traces = pm4py.conformance_diagnostics_token_based_replay(el, n, im, fm)
-    print(f"Token based CC: \n {replayed_traces}")
+    false_traces = []
+    for i in replayed_traces:
+        if i['trace_is_fit'] == False:
+            false_traces.append(i)
+    print(f"Not fitted traces {len(false_traces)}")
+    #print(f"Token based CC: \n {replayed_traces}")
     return replayed_traces
 
 
 def alignment(el, net, initial_marking, final_marking):
     tr = pm4py.conformance_diagnostics_token_based_replay(el, net, initial_marking, final_marking)
-    print(tr)
+    #print(tr)
     aligned_traces = pm4py.conformance_diagnostics_alignments(el, net, initial_marking, final_marking)
     from pm4py.algo.evaluation.replay_fitness import algorithm as fitness
     log_fitness = fitness.evaluate(aligned_traces, variant=fitness.Variants.ALIGNMENT_BASED)

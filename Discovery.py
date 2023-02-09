@@ -14,7 +14,7 @@ def dist_event(el, path):
     pm4py.save_vis_events_distribution_graph(el, file_path=f"{path}_months.png", distr_type="months")
 
 
-def discovery_inductive(el, path):
+def discovery_inductive(el, path, noise):
     '''
     generate and save BPMN model, petri net and direct follows graph following the inductive miner
     :param el: event log
@@ -24,7 +24,7 @@ def discovery_inductive(el, path):
     bpmn_model = pm4py.discover_bpmn_inductive(el)
     pm4py.save_vis_bpmn(bpmn_model, f"{path}_bpmn_inductive.png")
 
-    net, initial_marking, final_marking = pm4py.discover_petri_net_inductive(el)
+    net, initial_marking, final_marking = pm4py.discover_petri_net_inductive(el, noise)
     pm4py.save_vis_petri_net(net, initial_marking, final_marking, f"{path}_petri_inductive.png")
 
     dfg, st_acc, end_acc, = pm4py.discover_dfg(el)

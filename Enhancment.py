@@ -143,4 +143,7 @@ def sub_had(el):
     el_f_complex = pm4py.filter_event_attribute_values(el, "subject_id", id_complex, retain=True)
     return el_f_complex, id_complex
 
-
+def getgenders(el):
+    m = pm4py.filter_trace_attribute_values(el, "gender", ["M"], retain=True)
+    f = pm4py.filter_trace_attribute_values(el, "gender", ["F"], retain=True)
+    return m, f
